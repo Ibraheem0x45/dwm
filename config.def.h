@@ -113,6 +113,8 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_numbersign, 	setborderpx,    {.i = 0 } },
 	{ MODKEY,                       XK_n,		togglealttag,   {0} },
 	{ MODKEY|ShiftMask,             XK_f,           togglefullscr,  {0} },
+	{ MODKEY,                       XK_Left,       shiftviewclients,  { .i = -1 } },
+	{ MODKEY,                       XK_Right,      shiftviewclients,  { .i = 1  } },
 	TAGKEYS(                        XK_1,				0)
 	TAGKEYS(                        XK_2,				1)
 	TAGKEYS(                        XK_3,				2)

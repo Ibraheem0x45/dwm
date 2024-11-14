@@ -247,6 +247,7 @@ static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void xinitvisual();
 static void zoom(const Arg *arg);
+static void shiftviewclients(const Arg *arg);
 
 /* variables */
 static const char autostartblocksh[] = "autostart_blocking.sh";
@@ -2583,6 +2584,43 @@ zoom(const Arg *arg)
 	if (c == nexttiled(selmon->clients) && !(c = nexttiled(c->next)))
 		return;
 	pop(c);
+}
+
+void
+shiftviewclients(const Arg *arg)
+{
+	Arg shifted;
+	Client *c;
+	unsigned int tagmask = 0;
+	for (c = selmon->clients; c; c = c->next)
+		#if SCRATCHPADS_PATCH
+		if (!(c->tags & SPTAGMASK))
+			tagmask = tagmask | c->tags;
+		#else
+		tagmask = tagmask | c->tags;
+		#endif // SCRATCHPADS_PATCH
+	#if SCRATCHPADS_PATCH
+	shifted.ui = selmon->tagset[selmon->seltags] & ~SPTAGMASK;
+	#else
+	shifted.ui = selmon->tagset[selmon->seltags];
+	#endif // SCRATCHPADS_PATCH
+	if (arg->i > 0) // left circular shift
+		do {
+			shifted.ui = (shifted.ui << arg->i)
+			   | (shifted.ui >> (LENGTH(tags) - arg->i));
+			#if SCRATCHPADS_PATCH
+			shifted.ui &= ~SPTAGMASK;
+			#endif // SCRATCHPADS_PATCH
+		} while (tagmask && !(shifted.ui & tagmask));
+	else // right circular shift
+		do {
+			shifted.ui = (shifted.ui >> (- arg->i)
+			   | shifted.ui << (LENGTH(tags) + arg->i));
+			#if SCRATCHPADS_PATCH
+			shifted.ui &= ~SPTAGMASK;
+			#endif // SCRATCHPADS_PATCH
+		} while (tagmask && !(shifted.ui & tagmask));
+	view(&shifted);
 }
 
 int
